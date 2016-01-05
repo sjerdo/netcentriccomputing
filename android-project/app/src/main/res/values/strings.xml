@@ -10,5 +10,6 @@
     <string name="init_text">Initializing</string>
     <string name="not_connected">Not connected</string>
     <string name="connected">Connected</string>
+    <string name="potentio">Potentio</string>
 
 </resources>

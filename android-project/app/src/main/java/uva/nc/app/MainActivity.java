@@ -37,6 +37,7 @@ public class MainActivity extends ServiceActivity {
     private static final int COMMAND_SUM = 1;
     private static final int COMMAND_AVG = 2;
     private static final int COMMAND_LED = 3;
+    private static final int COMMAND_REQUEST_POTENTIO = 4;
 
     // BT Controls.
     private TextView listenerStatusText;
@@ -50,7 +51,7 @@ public class MainActivity extends ServiceActivity {
     // mBed controls.
     private TextView mbedConnectedText;
     private Button mbedSumButton;
-    private Button mbedAvgButton;
+    private Button mbedPotentioButton;
     private Button mbedLedButton;
 
     // Random data for sample events.
@@ -149,13 +150,13 @@ public class MainActivity extends ServiceActivity {
                 getMbed().manager.write(new MbedRequest(COMMAND_SUM, args));
             }
         });
-        mbedAvgButton = (Button)findViewById(R.id.mbed_avg);
-        mbedAvgButton.setOnClickListener(new View.OnClickListener() {
+        mbedPotentioButton = (Button)findViewById(R.id.mbed_potentio);
+        mbedPotentioButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                float[] args = getRandomFloatArray(10);
-                toastShort("Avg of:\n" + Arrays.toString(args));
-                getMbed().manager.write(new MbedRequest(COMMAND_AVG, args));
+                float[] args = new float[0];
+                toastShort("Requesting potentio:\n");
+                getMbed().manager.write(new MbedRequest(COMMAND_REQUEST_POTENTIO, args));
             }
         });
         mbedLedButton = (Button)findViewById(R.id.mbed_led);
@@ -246,7 +247,7 @@ public class MainActivity extends ServiceActivity {
         }
 
         mbedConnectedText.setText(connText);
-        mbedAvgButton.setEnabled(enableButtons);
+        mbedPotentioButton.setEnabled(enableButtons);
         mbedSumButton.setEnabled(enableButtons);
         mbedLedButton.setEnabled(enableButtons);
     }
@@ -373,6 +374,13 @@ public class MainActivity extends ServiceActivity {
                             toastShort("Error!");
                         } else {
                             toastShort("SUM: " + String.valueOf(values[0]));
+                        }
+                    } else if (response.getCommandId() == COMMAND_REQUEST_POTENTIO) {
+                        if (values == null || values.length != 1) {
+                            toastShort("error");
+                        }
+                        else {
+                            toastShort("current potentio: " + String.valueOf(values[0]));
                         }
                     }
                 }
