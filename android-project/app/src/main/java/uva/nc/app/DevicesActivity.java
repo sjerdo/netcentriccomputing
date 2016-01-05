@@ -1,16 +1,25 @@
 package uva.nc.app;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.PermissionChecker;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import java.lang.annotation.Annotation;
 
 import uva.nc.ServiceActivity;
 import uva.nc.bluetooth.BluetoothDeviceListAdapter;
@@ -18,7 +27,7 @@ import uva.nc.bluetooth.BluetoothService;
 import uva.nc.bluetooth.MasterManager;
 
 
-public class DevicesActivity extends ServiceActivity {
+public class DevicesActivity extends ServiceActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final String TAG = MainActivity.class.getName();
 
@@ -28,6 +37,9 @@ public class DevicesActivity extends ServiceActivity {
 
     // Controls.
     private Button discoverButton;
+    private BluetoothService bluetoothService;
+
+    private static final int REQUEST_COARSE_LOCATION_PERMISSIONS = 23;
 
 
     @Override
@@ -42,7 +54,7 @@ public class DevicesActivity extends ServiceActivity {
     }
 
     private void attachBluetoothControls() {
-        final BluetoothService bluetoothService = getBluetooth();
+        bluetoothService = getBluetooth();
 
         // Bind list adapter.
         setListAdapter(bluetoothService.getDevicesAdapter(this, R.layout.device_template));
@@ -53,18 +65,64 @@ public class DevicesActivity extends ServiceActivity {
             @Override
             public void onClick(View view) {
                 if (bluetoothService.utility.isDiscovering()) {
+                    Log.d(TAG, "Bluetooth stop discovery");
                     bluetoothService.utility.stopDiscovery();
                 } else {
-                    // If Bluetooth is not enabled, make a request and start discovery on result.
-                    if (!bluetoothService.utility.isEnabled()) {
-                        Intent enable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                        startActivityForResult(enable, REQUEST_ENABLE_BT_DISCO);
-                    } else {
-                        bluetoothService.utility.startDiscovery();
+                    int currentapiVersion = Build.VERSION.SDK_INT;
+                    if (currentapiVersion >= Build.VERSION_CODES.M) {
+                        doDiscovery();
+                    }
+                    else {
+                        continueDoDiscovery();
                     }
                 }
             }
         });
+    }
+
+    public void doDiscovery() {
+        int hasPermission = ActivityCompat.checkSelfPermission(DevicesActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        if (hasPermission == PackageManager.PERMISSION_GRANTED) {
+            continueDoDiscovery();
+            return;
+        }
+
+        ActivityCompat.requestPermissions(DevicesActivity.this,
+                new String[]{
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION},
+                REQUEST_COARSE_LOCATION_PERMISSIONS);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_COARSE_LOCATION_PERMISSIONS: {
+                if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    continueDoDiscovery();
+                } else {
+                    Toast.makeText(this,
+                            "canceled bluetooth",
+                            Toast.LENGTH_LONG).show();
+                    cancelOperation();
+                }
+                return;
+            }
+        }
+    }
+
+    private void continueDoDiscovery() {
+        // If Bluetooth is not enabled, make a request and start discovery on result.
+        if (!bluetoothService.utility.isEnabled()) {
+            Intent enable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enable, REQUEST_ENABLE_BT_DISCO);
+        } else {
+            Log.d(TAG, "Bluetooth start discovery");
+            bluetoothService.utility.startDiscovery();
+        }
+    }
+
+    private void cancelOperation() {
+        Toast.makeText(this, "canceled bluetooth", Toast.LENGTH_LONG).show();
     }
 
 
@@ -116,8 +174,14 @@ public class DevicesActivity extends ServiceActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_ENABLE_BT_DISCO && resultCode == RESULT_OK) {
-            getBluetooth().utility.startDiscovery();
+        if (requestCode == REQUEST_ENABLE_BT_DISCO) {
+            if(resultCode == RESULT_OK) {
+                Log.d(TAG, "Bluetooth start discovery");
+                getBluetooth().utility.startDiscovery();
+            }
+            else {
+                Log.d(TAG, "Bluetooth start discovery did not work");
+            }
         }
     }
 

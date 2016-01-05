@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -12,7 +13,7 @@ import uva.nc.bluetooth.BluetoothService;
 import uva.nc.mbed.MbedService;
 
 
-public abstract class ServiceActivity extends Activity {
+public abstract class ServiceActivity extends AppCompatActivity {
 
     private static final String TAG = ServiceActivity.class.getName();
 

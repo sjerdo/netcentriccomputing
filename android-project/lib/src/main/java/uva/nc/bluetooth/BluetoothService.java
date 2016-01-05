@@ -32,10 +32,13 @@ public class BluetoothService extends Service {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
+                Log.d(TAG, "got pairing request");
                 utility.acceptPairingRequest(intent);
             } else if (action.equals(BluetoothAdapter.ACTION_DISCOVERY_STARTED)) {
+                Log.d(TAG, "discovery is started");
                 master.clearInactiveDevices();
             } else if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+                Log.d(TAG, "found bluetooth device");
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 master.addDiscoveredDevice(device);
             }
