@@ -1,6 +1,5 @@
 package uva.nc.app;
 
-import android.app.DialogFragment;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -85,11 +84,11 @@ public class MainActivity extends ServiceActivity {
 
     private boolean sendPotentioToMaster = false;
 
-    public static void setSelectedDevices(ArrayList<String> selectedDevices) {
-        MainActivity.selectedDevices = selectedDevices;
-    }
+    private static ArrayList<String> deselectedDevices = new ArrayList<>();
 
-    private static ArrayList<String> selectedDevices = new ArrayList<>();
+    public static void setDeselectedDevices(ArrayList<String> deselectedDevices) {
+        MainActivity.deselectedDevices = deselectedDevices;
+    }
 
 
     @Override
@@ -177,12 +176,7 @@ public class MainActivity extends ServiceActivity {
             public void onClick(View v) {
                 BluetoothService bluetoothService = getBluetooth();
                 if (bluetoothService != null) {
-                    if (selectedDevices.size() == 0) {
-                        bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_LEDPARTY, new float[]{}));
-                    }
-                    else {
-                        bluetoothService.master.sendToDeviceAddresses(selectedDevices, new BluetoothObject(BT_COMMAND_LEDPARTY, new float[]{}));
-                    }
+                    bluetoothService.master.sendToDevicesExcludingAddresses(deselectedDevices, new BluetoothObject(BT_COMMAND_LEDPARTY, new float[]{}));
                 }
             }
         });
@@ -192,12 +186,7 @@ public class MainActivity extends ServiceActivity {
             public void onClick(View v) {
                 BluetoothService bluetoothService = getBluetooth();
                 if (bluetoothService != null) {
-                    if (selectedDevices.size() == 0) {
-                        bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_REQUEST_POTENTIO, new float[]{}));
-                    }
-                    else {
-                        bluetoothService.master.sendToDeviceAddresses(selectedDevices, new BluetoothObject(BT_COMMAND_REQUEST_POTENTIO, null));
-                    }
+                    bluetoothService.master.sendToDevicesExcludingAddresses(deselectedDevices, new BluetoothObject(BT_COMMAND_REQUEST_POTENTIO, null));
                 }
             }
         });
@@ -209,7 +198,7 @@ public class MainActivity extends ServiceActivity {
                 BluetoothService bluetoothService = getBluetooth();
                 if (bluetoothService != null) {
                     newFragment.setMasterManager(bluetoothService.master);
-                    newFragment.setSelectedDevices(selectedDevices);
+                    newFragment.setDeselectedDevices(deselectedDevices);
                 }
                 newFragment.show(getFragmentManager(), "selectslaves");
             }
@@ -266,13 +255,7 @@ public class MainActivity extends ServiceActivity {
                 BluetoothService bluetoothService = getBluetooth();
 
                 if (bluetoothService != null) {
-
-                    if (selectedDevices.size() == 0) {
-                        bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_SET_POTENTIO, new float[] { percentage / 10f }));
-                    }
-                    else {
-                        bluetoothService.master.sendToDeviceAddresses(selectedDevices, new BluetoothObject(BT_COMMAND_SET_POTENTIO, new float[] { percentage / 10f }));
-                    }
+                    bluetoothService.master.sendToDevicesExcludingAddresses(deselectedDevices, new BluetoothObject(BT_COMMAND_SET_POTENTIO, new float[] { percentage / 10f }));
                 }
             }
         });

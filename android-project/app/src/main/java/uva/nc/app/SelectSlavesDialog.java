@@ -7,11 +7,9 @@ import android.app.DialogFragment;
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 
 import java.util.ArrayList;
 
-import uva.nc.bluetooth.BluetoothService;
 import uva.nc.bluetooth.DeviceState;
 import uva.nc.bluetooth.MasterManager;
 
@@ -25,14 +23,14 @@ public class SelectSlavesDialog extends DialogFragment {
     private String[] devicesArr;
     private boolean[] checkedItems;
     private ArrayList<String> connectedDevices;
-    private ArrayList<String> selectedDevices;
+    private ArrayList<String> deselectedDevices;
 
     public void setMasterManager(MasterManager masterManager) {
         this.masterManager = masterManager;
     }
 
-    public void setSelectedDevices(ArrayList<String> selectedDevices) {
-        this.selectedDevices = selectedDevices;
+    public void setDeselectedDevices(ArrayList<String> deselectedDevices) {
+        this.deselectedDevices = deselectedDevices;
     }
 
     private String[] getDevices() {
@@ -51,7 +49,7 @@ public class SelectSlavesDialog extends DialogFragment {
         checkedItems = new boolean[devicesArr.length];
         for (int i = 0; i < devicesArr.length; i++) {
             String device = connectedDevices.get(i);
-            checkedItems[i] = selectedDevices.contains(device);
+            checkedItems[i] = !deselectedDevices.contains(device);
         }
         return checkedItems;
     }
@@ -72,12 +70,12 @@ public class SelectSlavesDialog extends DialogFragment {
                                                 boolean isChecked) {
                                 if (isChecked) {
                                     // If the user checked the item, add it to the selected items
-                                    if (!selectedDevices.contains(connectedDevices.get(which))) {
-                                        selectedDevices.add(connectedDevices.get(which));
+                                    if (deselectedDevices.contains(connectedDevices.get(which))) {
+                                        deselectedDevices.remove(connectedDevices.get(which));
                                     }
-                                } else if (selectedDevices.contains(connectedDevices.get(which))) {
+                                } else if (!deselectedDevices.contains(connectedDevices.get(which))) {
                                     // Else, if the item is already in the array, remove it
-                                    selectedDevices.remove(connectedDevices.get(which));
+                                    deselectedDevices.add(connectedDevices.get(which));
                                 }
                             }
                         })
@@ -87,7 +85,7 @@ public class SelectSlavesDialog extends DialogFragment {
                     public void onClick(DialogInterface dialog, int id) {
                         // User clicked OK, so save the mSelectedItems results somewhere
                         // or return them to the component that opened the dialog
-                        MainActivity.setSelectedDevices(selectedDevices);
+                        MainActivity.setDeselectedDevices(deselectedDevices);
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
