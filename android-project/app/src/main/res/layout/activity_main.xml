@@ -133,6 +133,37 @@
                     android:id="@+id/ping_slaves"
                     android:enabled="false"
                     android:layout_weight="1" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ledparty_slaves"
+                    android:id="@+id/ledparty_slaves"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:enabled="false" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Potentio"
+                    android:id="@+id/potentio_slaves"
+                    android:enabled="false" />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select Slaves"
+                    android:id="@+id/selectdevices_slaves"
+                    android:enabled="false" />
             </LinearLayout>
 
             <RelativeLayout

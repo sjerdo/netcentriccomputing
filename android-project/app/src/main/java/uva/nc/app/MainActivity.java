@@ -45,6 +45,8 @@ public class MainActivity extends ServiceActivity {
     private static final int COMMAND_REQUEST_STATUS = 5;
     private static final int COMMAND_GOTO = 6;
 
+    private static final int BT_COMMAND_LEDPARTY = 20;
+
     // BT Controls.
     private TextView listenerStatusText;
     private TextView ownAddressText;
@@ -53,6 +55,10 @@ public class MainActivity extends ServiceActivity {
     private Button devicesButton;
     private Button pingMasterButton;
     private Button pingSlavesButton;
+
+    private Button ledpartySlavesButton;
+    private Button potentioSlavesButton;
+    private Button selectDevicesButton;
 
     // mBed controls.
     private TextView mbedConnectedText;
@@ -152,6 +158,19 @@ public class MainActivity extends ServiceActivity {
                 }
             }
         });
+        ledpartySlavesButton = (Button)findViewById(R.id.ledparty_slaves);
+        ledpartySlavesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BluetoothService bluetoothService = getBluetooth();
+                if (bluetoothService != null) {
+                    bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_LEDPARTY, new float[] {}));
+                }
+            }
+        });
+        potentioSlavesButton = (Button)findViewById(R.id.potentio_slaves);
+        selectDevicesButton = (Button)findViewById(R.id.selectdevices_slaves);
+
 
         // mBed controls.
         mbedSumButton = (Button)findViewById(R.id.mbed_sum);
@@ -283,6 +302,10 @@ public class MainActivity extends ServiceActivity {
         pingMasterButton.setEnabled(allowPingMaster);
         pingSlavesButton.setEnabled(allowPingSlaves);
         knobMasterFrame.setVisibility(devConnected > 0 ? View.VISIBLE : View.GONE);
+
+        ledpartySlavesButton.setEnabled(devConnected > 0);
+        potentioSlavesButton.setEnabled(devConnected > 0);
+        selectDevicesButton.setEnabled(devConnected > 0);
     }
 
     private void refreshMbedControls() {
@@ -387,7 +410,18 @@ public class MainActivity extends ServiceActivity {
                 // Slave received data from master.
                 Serializable obj = intent.getSerializableExtra(SlaveManager.EXTRA_OBJECT);
                 if (obj != null) {
-                    toastShort("From master:\n" + String.valueOf(obj));
+                    if (obj instanceof BluetoothObject) {
+                        BluetoothObject btobj = (BluetoothObject)obj;
+                        if (btobj.getCommand() == BT_COMMAND_LEDPARTY) {
+                            if (getMbed().manager.areChannelsOpen()) {
+                                float[] args = getRandomLedArray();
+                                getMbed().manager.write(new MbedRequest(COMMAND_LED, args));
+                            }
+                        }
+                    }
+                    else {
+                        toastShort("From master:\n" + String.valueOf(obj));
+                    }
                 } else {
                     toastShort("From master:\nnull");
                 }
