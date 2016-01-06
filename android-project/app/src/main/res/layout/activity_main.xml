@@ -68,6 +68,13 @@
                     android:layout_weight="1" />
             </LinearLayout>
 
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/knob_frame_slave"
+                android:layout_weight="1">
+
+            </RelativeLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -125,6 +132,14 @@
                     android:enabled="false"
                     android:layout_weight="1" />
             </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/knob_frame_master"
+                android:layout_weight="1">
+
+            </RelativeLayout>
 
             <TextView
                 android:layout_width="wrap_content"

@@ -10,7 +10,9 @@ import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -29,6 +31,7 @@ import uva.nc.mbed.MbedService;
 public class MainActivity extends ServiceActivity {
 
     private static final String TAG = MainActivity.class.getName();
+    Singleton m_Inst = Singleton.getInstance();
 
     // Receiver implemented in separate class, see bottom of file.
     private final MainActivityReceiver receiver = new MainActivityReceiver();
@@ -67,6 +70,7 @@ public class MainActivity extends ServiceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        m_Inst.InitGUIFrame(this);
         setContentView(R.layout.activity_main);
         attachControls();
 
@@ -168,6 +172,32 @@ public class MainActivity extends ServiceActivity {
             public void onClick(View view) {
                 float[] args = getRandomLedArray();
                 getMbed().manager.write(new MbedRequest(COMMAND_LED, args));
+            }
+        });
+
+        //create knob
+        RoundKnobButton roundKnobButtonMaster = new RoundKnobButton(this, R.drawable.stator, R.drawable.rotoron, R.drawable.rotoroff,
+                m_Inst.Scale(250), m_Inst.Scale(250));
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        lp.addRule(RelativeLayout.CENTER_IN_PARENT);
+        ((RelativeLayout)findViewById(R.id.knob_frame_master)).addView(roundKnobButtonMaster, lp);
+
+        //create knob
+        RoundKnobButton roundKnobButtonSlave = new RoundKnobButton(this, R.drawable.stator, R.drawable.rotoron, R.drawable.rotoroff,
+                m_Inst.Scale(250), m_Inst.Scale(250));
+        ((RelativeLayout)findViewById(R.id.knob_frame_slave)).addView(roundKnobButtonSlave, lp);
+
+        //TODO: set correct initial value
+        roundKnobButtonSlave.setRotorPercentage(50);
+        roundKnobButtonSlave.SetListener(new RoundKnobButton.RoundKnobButtonListener() {
+            public void onStateChange(boolean newstate) {
+                Toast.makeText(MainActivity.this,  "New state:"+newstate,  Toast.LENGTH_SHORT).show();
+            }
+
+            public void onRotate(final int percentage) {
+                if(getMbed().manager.areChannelsOpen()) {
+                    getMbed().manager.write(new MbedRequest(COMMAND_GOTO, new float[]{percentage / 10f}));
+                }
             }
         });
     }

@@ -35,6 +35,8 @@ public class MbedResponse implements Parcelable {
                 return "No error";
             case 1:
                 return "Command not found";
+            case 2:
+                return "Cannot set potentio (invalid value)";
             default:
                 return "Unknown error";
         }
