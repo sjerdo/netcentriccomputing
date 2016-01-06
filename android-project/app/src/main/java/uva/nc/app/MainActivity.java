@@ -46,7 +46,8 @@ public class MainActivity extends ServiceActivity {
     private static final int COMMAND_GOTO = 6;
 
     private static final int BT_COMMAND_LEDPARTY = 20;
-    private static final int BT_COMMAND_POTENTIO = 23;
+    private static final int BT_COMMAND_POTENTIO = 22;
+    private static final int BT_COMMAND_SET_POTENTIO = 23;
     private static final int BT_COMMAND_REQUEST_POTENTIO = 24;
 
     // BT Controls.
@@ -183,6 +184,7 @@ public class MainActivity extends ServiceActivity {
             }
         });
         selectDevicesButton = (Button)findViewById(R.id.selectdevices_slaves);
+        //TODO: implement select slaves button
 
 
         // mBed controls.
@@ -224,6 +226,20 @@ public class MainActivity extends ServiceActivity {
                 m_Inst.Scale(250), m_Inst.Scale(250));
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         lp.addRule(RelativeLayout.CENTER_IN_PARENT);
+        knobMaster.SetListener(new RoundKnobButton.RoundKnobButtonListener() {
+            @Override
+            public void onStateChange(boolean newstate) {
+
+            }
+
+            @Override
+            public void onRotate(int percentage) {
+                BluetoothService bluetoothService = getBluetooth();
+                if (bluetoothService != null) {
+                    bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_SET_POTENTIO, new float[] { percentage / 10f }));
+                }
+            }
+        });
         knobMasterFrame = (RelativeLayout)findViewById(R.id.knob_frame_master);
         knobMasterFrame.addView(knobMaster, lp);
 
@@ -435,6 +451,10 @@ public class MainActivity extends ServiceActivity {
                                 sendPotentioToMaster = true;
                                 getMbed().manager.write(new MbedRequest(COMMAND_REQUEST_POTENTIO, new float[] {}));
                             }
+                        } else if (btobj.getCommand() == BT_COMMAND_SET_POTENTIO && btobj.getData().length == 1) {
+                            if (getMbed().manager.areChannelsOpen()) {
+                                getMbed().manager.write(new MbedRequest(COMMAND_GOTO, btobj.getData()));
+                            }
                         }
                     }
                     else {
@@ -452,7 +472,9 @@ public class MainActivity extends ServiceActivity {
                     if (obj instanceof BluetoothObject) {
                         BluetoothObject btobj = (BluetoothObject) obj;
                         if (btobj.getCommand() == BT_COMMAND_POTENTIO && btobj.getData().length == 1) {
-                            toastShort("Potentio of " + device + " is " + String.valueOf(btobj.getData()[0]) + "\n");
+                            float percentage = btobj.getData()[0];
+                            knobMaster.setRotorPercentage((int)(percentage * 10f));
+                            toastShort("Potentio of " + device + " is " + String.valueOf(percentage) + "\n");
                         }
                         else {
                             toastShort("unknown BluetoothObject from " + device + "\n");
