@@ -46,6 +46,8 @@ public class MainActivity extends ServiceActivity {
     private static final int COMMAND_GOTO = 6;
 
     private static final int BT_COMMAND_LEDPARTY = 20;
+    private static final int BT_COMMAND_POTENTIO = 23;
+    private static final int BT_COMMAND_REQUEST_POTENTIO = 24;
 
     // BT Controls.
     private TextView listenerStatusText;
@@ -77,6 +79,8 @@ public class MainActivity extends ServiceActivity {
 
     // Accessory to connect to when service is connected.
     private UsbAccessory toConnect;
+
+    private boolean sendPotentioToMaster = false;
 
 
     @Override
@@ -169,6 +173,15 @@ public class MainActivity extends ServiceActivity {
             }
         });
         potentioSlavesButton = (Button)findViewById(R.id.potentio_slaves);
+        potentioSlavesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BluetoothService bluetoothService = getBluetooth();
+                if (bluetoothService != null) {
+                    bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_REQUEST_POTENTIO, null));
+                }
+            }
+        });
         selectDevicesButton = (Button)findViewById(R.id.selectdevices_slaves);
 
 
@@ -417,6 +430,11 @@ public class MainActivity extends ServiceActivity {
                                 float[] args = getRandomLedArray();
                                 getMbed().manager.write(new MbedRequest(COMMAND_LED, args));
                             }
+                        } else if (btobj.getCommand() == BT_COMMAND_REQUEST_POTENTIO) {
+                            if (getMbed().manager.areChannelsOpen()) {
+                                sendPotentioToMaster = true;
+                                getMbed().manager.write(new MbedRequest(COMMAND_REQUEST_POTENTIO, new float[] {}));
+                            }
                         }
                     }
                     else {
@@ -431,7 +449,17 @@ public class MainActivity extends ServiceActivity {
                 Serializable obj = intent.getSerializableExtra(MasterManager.EXTRA_OBJECT);
                 BluetoothDevice device = intent.getParcelableExtra(MasterManager.EXTRA_DEVICE);
                 if (obj != null) {
-                    toastShort("From " + device + "\n" + String.valueOf(obj));
+                    if (obj instanceof BluetoothObject) {
+                        BluetoothObject btobj = (BluetoothObject) obj;
+                        if (btobj.getCommand() == BT_COMMAND_POTENTIO && btobj.getData().length == 1) {
+                            toastShort("Potentio of " + device + " is " + String.valueOf(btobj.getData()[0]) + "\n");
+                        }
+                        else {
+                            toastShort("unknown BluetoothObject from " + device + "\n");
+                        }
+                    } else {
+                        toastShort("From " + device + "\n" + String.valueOf(obj));
+                    }
                 } else {
                     toastShort("From " + device + "\nnull!");
                 }
@@ -467,6 +495,13 @@ public class MainActivity extends ServiceActivity {
                             toastShort("current potentio: " + String.valueOf(values[0]));
                             if (knobSlave != null) {
                                 knobSlave.setRotorPercentage((int) (values[0] * 10));
+                            }
+                            if (sendPotentioToMaster) {
+                                sendPotentioToMaster = false;
+                                BluetoothService bluetoothService = getBluetooth();
+                                if (bluetoothService != null) {
+                                    bluetoothService.slave.sendToMaster(new BluetoothObject(BT_COMMAND_POTENTIO, values));
+                                }
                             }
                         }
                     } else if (response.getCommandId() == COMMAND_GOTO) {
