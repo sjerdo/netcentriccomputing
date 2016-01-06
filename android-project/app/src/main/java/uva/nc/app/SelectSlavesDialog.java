@@ -21,7 +21,6 @@ public class SelectSlavesDialog extends DialogFragment {
 
     private MasterManager masterManager;
     private String[] devicesArr;
-    private boolean[] checkedItems;
     private ArrayList<String> connectedDevices;
     private ArrayList<String> deselectedDevices;
 
@@ -42,17 +41,19 @@ public class SelectSlavesDialog extends DialogFragment {
     private String[] getDevices() {
         ArrayList<BluetoothDevice> deviceList = masterManager.getDeviceList();
         connectedDevices = new ArrayList<>();
+        ArrayList<String> connectedDeviceNames = new ArrayList<>();
         for (BluetoothDevice device : deviceList) {
             if (masterManager.getDeviceState(device) == DeviceState.Connected) {
                 connectedDevices.add(device.getAddress());
+                connectedDeviceNames.add(device.getName());
             }
         }
-        devicesArr = new String[connectedDevices.size()];
-        return connectedDevices.toArray(devicesArr);
+        devicesArr = new String[connectedDeviceNames.size()];
+        return connectedDeviceNames.toArray(devicesArr);
     }
 
     private boolean[] getCheckedItems() {
-        checkedItems = new boolean[devicesArr.length];
+        boolean[] checkedItems = new boolean[devicesArr.length];
         for (int i = 0; i < devicesArr.length; i++) {
             String device = connectedDevices.get(i);
             checkedItems[i] = !deselectedDevices.contains(device);
@@ -62,7 +63,6 @@ public class SelectSlavesDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        //mSelectedItems = new ArrayList();  // Where we track the selected items
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         // Set the dialog title
