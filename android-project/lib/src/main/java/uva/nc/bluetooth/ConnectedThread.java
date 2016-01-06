@@ -41,11 +41,13 @@ public class ConnectedThread extends Thread {
                 listener.onReceive(remoteDevice, (Serializable)objInput.readObject());
                 Log.v(TAG, "Received object from " + remoteDevice.toString());
             } catch (IOException e) {
+                e.printStackTrace();
                 Log.v(TAG, "IO error in comm channel with " + remoteDevice.toString());
                 listener.onReceiveError(remoteDevice);
                 close();
                 break;
             } catch (ClassNotFoundException e) {
+                e.printStackTrace();
                 Log.e(TAG, "Object mismatch exception in comm channel with " + remoteDevice.toString(), e);
                 listener.onReceiveError(remoteDevice);
                 close();
@@ -60,6 +62,7 @@ public class ConnectedThread extends Thread {
             objOutput.flush();
             Log.v(TAG, "Wrote object to " + remoteDevice.toString());
         } catch (IOException e) {
+            e.printStackTrace();
             Log.e(TAG, "Failed to write object to " + remoteDevice.toString());
             close();
         }
