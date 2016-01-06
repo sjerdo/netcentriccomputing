@@ -442,19 +442,25 @@ public class MainActivity extends ServiceActivity {
                     if (obj instanceof BluetoothObject) {
                         BluetoothObject btobj = (BluetoothObject)obj;
                         if (btobj.getCommand() == BT_COMMAND_LEDPARTY) {
+                            toastShort("received ledparty from master\n");
                             if (getMbed().manager.areChannelsOpen()) {
                                 float[] args = getRandomLedArray();
                                 getMbed().manager.write(new MbedRequest(COMMAND_LED, args));
                             }
                         } else if (btobj.getCommand() == BT_COMMAND_REQUEST_POTENTIO) {
+                            toastShort("received potentiorequest from master\n");
                             if (getMbed().manager.areChannelsOpen()) {
                                 sendPotentioToMaster = true;
                                 getMbed().manager.write(new MbedRequest(COMMAND_REQUEST_POTENTIO, new float[] {}));
                             }
                         } else if (btobj.getCommand() == BT_COMMAND_SET_POTENTIO && btobj.getData().length == 1) {
+                            toastShort("set potentio from master\n");
                             if (getMbed().manager.areChannelsOpen()) {
                                 getMbed().manager.write(new MbedRequest(COMMAND_GOTO, btobj.getData()));
                             }
+                        }
+                        else {
+                            toastShort("received unknown btobject from master\n");
                         }
                     }
                     else {
