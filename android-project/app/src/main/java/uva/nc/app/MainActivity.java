@@ -38,6 +38,9 @@ public class MainActivity extends ServiceActivity {
     private static final int COMMAND_AVG = 2;
     private static final int COMMAND_LED = 3;
     private static final int COMMAND_REQUEST_POTENTIO = 4;
+    //TODO: implement following commands on the mBed:
+    private static final int COMMAND_REQUEST_STATUS = 5;
+    private static final int COMMAND_GOTO = 6;
 
     // BT Controls.
     private TextView listenerStatusText;

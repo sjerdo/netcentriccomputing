@@ -3,12 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="10dp"
-    android:paddingRight="5dp">
+    android:paddingRight="5dp"
+    android:paddingEnd="5dp"
+    android:paddingLeft="5dp"
+    android:paddingStart="5dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Device #0"
         android:id="@id/template_device_name"
         android:textStyle="bold"
         android:textSize="18sp"
@@ -18,12 +20,12 @@
         android:maxLines="1"
         android:ellipsize="end"
         android:layout_toLeftOf="@id/template_device_button"
+        android:layout_toStartOf="@id/template_device_button"
         android:singleLine="false" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="00:0a:95:9d:68:16"
         android:id="@id/template_device_address"
         android:textColor="#666666"
         android:textSize="16sp"
@@ -36,7 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Connect"
+        android:text="@string/connect"
         android:id="@id/template_device_button"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
