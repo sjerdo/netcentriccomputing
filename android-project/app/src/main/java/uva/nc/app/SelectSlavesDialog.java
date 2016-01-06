@@ -25,12 +25,18 @@ public class SelectSlavesDialog extends DialogFragment {
     private ArrayList<String> connectedDevices;
     private ArrayList<String> deselectedDevices;
 
+    private FragmentCallbacks mCallbacks;
+
     public void setMasterManager(MasterManager masterManager) {
         this.masterManager = masterManager;
     }
 
     public void setDeselectedDevices(ArrayList<String> deselectedDevices) {
         this.deselectedDevices = deselectedDevices;
+    }
+
+    public void setCallback(FragmentCallbacks callback) {
+        this.mCallbacks = callback;
     }
 
     private String[] getDevices() {
@@ -85,7 +91,9 @@ public class SelectSlavesDialog extends DialogFragment {
                     public void onClick(DialogInterface dialog, int id) {
                         // User clicked OK, so save the mSelectedItems results somewhere
                         // or return them to the component that opened the dialog
-                        MainActivity.setDeselectedDevices(deselectedDevices);
+                        if (mCallbacks != null) {
+                            mCallbacks.SelectedDevicesUpdated(deselectedDevices);
+                        }
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -97,4 +105,9 @@ public class SelectSlavesDialog extends DialogFragment {
 
         return builder.create();
     }
+
+    public interface FragmentCallbacks {
+        void SelectedDevicesUpdated(ArrayList<String> deselectedDevices);
+    }
+
 }

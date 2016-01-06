@@ -8,8 +8,10 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -62,7 +64,11 @@ public class MainActivity extends ServiceActivity {
 
     private Button ledpartySlavesButton;
     private Button potentioSlavesButton;
+
+    // Selected slaves
     private Button selectDevicesButton;
+    private LinearLayout selectedSlavesTextFrame;
+    private TextView selectedSlavesText;
 
     // mBed controls.
     private TextView mbedConnectedText;
@@ -84,12 +90,7 @@ public class MainActivity extends ServiceActivity {
 
     private boolean sendPotentioToMaster = false;
 
-    private static ArrayList<String> deselectedDevices = new ArrayList<>();
-
-    public static void setDeselectedDevices(ArrayList<String> deselectedDevices) {
-        MainActivity.deselectedDevices = deselectedDevices;
-    }
-
+    private ArrayList<String> deselectedDevices = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -199,10 +200,24 @@ public class MainActivity extends ServiceActivity {
                 if (bluetoothService != null) {
                     newFragment.setMasterManager(bluetoothService.master);
                     newFragment.setDeselectedDevices(deselectedDevices);
+                    newFragment.setCallback(new SelectSlavesDialog.FragmentCallbacks() {
+                        @Override
+                        public void SelectedDevicesUpdated(ArrayList<String> devices) {
+                            deselectedDevices = devices;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    refreshBluetoothControls();
+                                }
+                            });
+                        }
+                    });
                 }
                 newFragment.show(getFragmentManager(), "selectslaves");
             }
         });
+        selectedSlavesTextFrame = (LinearLayout)findViewById(R.id.selected_slaves_text);
+        selectedSlavesText = (TextView)findViewById(R.id.selected_slaves_count);
 
 
         // mBed controls.
@@ -354,6 +369,13 @@ public class MainActivity extends ServiceActivity {
         ledpartySlavesButton.setEnabled(devConnected > 0);
         potentioSlavesButton.setEnabled(devConnected > 0);
         selectDevicesButton.setEnabled(devConnected > 0);
+
+        if (devConnected > 0 && deselectedDevices.size() > 0) {
+            selectedSlavesTextFrame.setVisibility(View.VISIBLE);
+            selectedSlavesText.setText(String.valueOf(devConnected - deselectedDevices.size()));
+        } else {
+            selectedSlavesTextFrame.setVisibility(View.GONE);
+        }
     }
 
     private void refreshMbedControls() {
