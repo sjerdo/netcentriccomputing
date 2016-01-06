@@ -1,5 +1,6 @@
 package uva.nc.app;
 
+import android.app.DialogFragment;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -82,6 +84,12 @@ public class MainActivity extends ServiceActivity {
     private UsbAccessory toConnect;
 
     private boolean sendPotentioToMaster = false;
+
+    public static void setSelectedDevices(ArrayList<String> selectedDevices) {
+        MainActivity.selectedDevices = selectedDevices;
+    }
+
+    private static ArrayList<String> selectedDevices = new ArrayList<>();
 
 
     @Override
@@ -169,7 +177,12 @@ public class MainActivity extends ServiceActivity {
             public void onClick(View v) {
                 BluetoothService bluetoothService = getBluetooth();
                 if (bluetoothService != null) {
-                    bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_LEDPARTY, new float[] {}));
+                    if (selectedDevices.size() == 0) {
+                        bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_LEDPARTY, new float[]{}));
+                    }
+                    else {
+                        bluetoothService.master.sendToDeviceAddresses(selectedDevices, new BluetoothObject(BT_COMMAND_LEDPARTY, new float[]{}));
+                    }
                 }
             }
         });
@@ -179,12 +192,28 @@ public class MainActivity extends ServiceActivity {
             public void onClick(View v) {
                 BluetoothService bluetoothService = getBluetooth();
                 if (bluetoothService != null) {
-                    bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_REQUEST_POTENTIO, null));
+                    if (selectedDevices.size() == 0) {
+                        bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_REQUEST_POTENTIO, new float[]{}));
+                    }
+                    else {
+                        bluetoothService.master.sendToDeviceAddresses(selectedDevices, new BluetoothObject(BT_COMMAND_REQUEST_POTENTIO, null));
+                    }
                 }
             }
         });
         selectDevicesButton = (Button)findViewById(R.id.selectdevices_slaves);
-        //TODO: implement select slaves button
+        selectDevicesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SelectSlavesDialog newFragment = new SelectSlavesDialog();
+                BluetoothService bluetoothService = getBluetooth();
+                if (bluetoothService != null) {
+                    newFragment.setMasterManager(bluetoothService.master);
+                    newFragment.setSelectedDevices(selectedDevices);
+                }
+                newFragment.show(getFragmentManager(), "selectslaves");
+            }
+        });
 
 
         // mBed controls.
@@ -235,8 +264,15 @@ public class MainActivity extends ServiceActivity {
             @Override
             public void onRotate(int percentage) {
                 BluetoothService bluetoothService = getBluetooth();
+
                 if (bluetoothService != null) {
-                    bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_SET_POTENTIO, new float[] { percentage / 10f }));
+
+                    if (selectedDevices.size() == 0) {
+                        bluetoothService.master.sendToAll(new BluetoothObject(BT_COMMAND_SET_POTENTIO, new float[] { percentage / 10f }));
+                    }
+                    else {
+                        bluetoothService.master.sendToDeviceAddresses(selectedDevices, new BluetoothObject(BT_COMMAND_SET_POTENTIO, new float[] { percentage / 10f }));
+                    }
                 }
             }
         });
@@ -539,4 +575,5 @@ public class MainActivity extends ServiceActivity {
             }
         }
     }
+
 }

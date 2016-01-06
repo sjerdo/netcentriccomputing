@@ -15,5 +15,8 @@
 
     <string name="connect">Connect</string>
     <string name="ledparty_slaves">LeD pArTy!</string>
+    <string name="selectslaves">Select slaves</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
 
 </resources>

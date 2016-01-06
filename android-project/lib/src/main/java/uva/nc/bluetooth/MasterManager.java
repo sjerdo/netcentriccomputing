@@ -138,6 +138,13 @@ public class MasterManager {
         }
     }
 
+    public void sendToDeviceAddresses(ArrayList<String> addresses, Serializable obj) {
+        for (BluetoothDevice device : remoteDevices) {
+            if (addresses.contains(device.getAddress()))
+                    sendToDevice(device, obj);
+        }
+    }
+
     public boolean sendToDevice(BluetoothDevice device, Serializable obj) {
         if (getDeviceState(device) == DeviceState.Connected) {
             ConnectedThread thread = connectedThreads.get(device);
@@ -174,7 +181,7 @@ public class MasterManager {
     }
 
 
-    ArrayList<BluetoothDevice> getDeviceList() {
+    public ArrayList<BluetoothDevice> getDeviceList() {
         return remoteDevices;
     }
 
