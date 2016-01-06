@@ -60,6 +60,12 @@ public class MainActivity extends ServiceActivity {
     private Button mbedPotentioButton;
     private Button mbedLedButton;
 
+    // Knobs
+    private RelativeLayout knobMasterFrame;
+    private RoundKnobButton knobMaster;
+    private RelativeLayout knobSlaveFrame;
+    private RoundKnobButton knobSlave;
+
     // Random data for sample events.
     private Random random = new Random();
 
@@ -175,21 +181,29 @@ public class MainActivity extends ServiceActivity {
             }
         });
 
-        //create knob
-        RoundKnobButton roundKnobButtonMaster = new RoundKnobButton(this, R.drawable.stator, R.drawable.rotoron, R.drawable.rotoroff,
+        createKnobs();
+    }
+
+    private void createKnobs() {
+
+
+        //create master knob
+        knobMaster = new RoundKnobButton(this, R.drawable.stator, R.drawable.rotoron, R.drawable.rotoroff,
                 m_Inst.Scale(250), m_Inst.Scale(250));
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         lp.addRule(RelativeLayout.CENTER_IN_PARENT);
-        ((RelativeLayout)findViewById(R.id.knob_frame_master)).addView(roundKnobButtonMaster, lp);
+        knobMasterFrame = (RelativeLayout)findViewById(R.id.knob_frame_master);
+        knobMasterFrame.addView(knobMaster, lp);
 
-        //create knob
-        RoundKnobButton roundKnobButtonSlave = new RoundKnobButton(this, R.drawable.stator, R.drawable.rotoron, R.drawable.rotoroff,
+        //create slave knob
+        knobSlave = new RoundKnobButton(this, R.drawable.stator, R.drawable.rotoron, R.drawable.rotoroff,
                 m_Inst.Scale(250), m_Inst.Scale(250));
-        ((RelativeLayout)findViewById(R.id.knob_frame_slave)).addView(roundKnobButtonSlave, lp);
+        knobSlaveFrame = (RelativeLayout)findViewById(R.id.knob_frame_slave);
+        knobSlaveFrame.addView(knobSlave, lp);
 
         //TODO: set correct initial value
-        roundKnobButtonSlave.setRotorPercentage(50);
-        roundKnobButtonSlave.SetListener(new RoundKnobButton.RoundKnobButtonListener() {
+        knobSlave.setRotorPercentage(50);
+        knobSlave.SetListener(new RoundKnobButton.RoundKnobButtonListener() {
             public void onStateChange(boolean newstate) {
                 Toast.makeText(MainActivity.this,  "New state:"+newstate,  Toast.LENGTH_SHORT).show();
             }
@@ -207,6 +221,7 @@ public class MainActivity extends ServiceActivity {
         String slaveButton = "Start listening";
         String ownAddress = "Not available";
         String connected = "0";
+        int devConnected = 0;
         boolean slaveButtonEnabled = false;
         boolean devicesButtonEnabled = false;
         boolean allowPingMaster = false;
@@ -219,7 +234,7 @@ public class MainActivity extends ServiceActivity {
             devicesButtonEnabled = true;
             ownAddress = bluetooth.utility.getOwnAddress();
 
-            int devConnected = bluetooth.master.countConnected();
+            devConnected = bluetooth.master.countConnected();
             if (bluetooth.master.countConnected() > 0) {
                 connected = String.valueOf(devConnected);
                 allowPingSlaves = true;
@@ -267,6 +282,7 @@ public class MainActivity extends ServiceActivity {
         devicesButton.setEnabled(devicesButtonEnabled);
         pingMasterButton.setEnabled(allowPingMaster);
         pingSlavesButton.setEnabled(allowPingSlaves);
+        knobMasterFrame.setVisibility(devConnected > 0 ? View.VISIBLE : View.GONE);
     }
 
     private void refreshMbedControls() {
@@ -283,6 +299,7 @@ public class MainActivity extends ServiceActivity {
         mbedPotentioButton.setEnabled(enableButtons);
         mbedSumButton.setEnabled(enableButtons);
         mbedLedButton.setEnabled(enableButtons);
+        knobSlaveFrame.setVisibility(enableButtons ? View.VISIBLE : View.GONE);
     }
 
 
@@ -414,7 +431,12 @@ public class MainActivity extends ServiceActivity {
                         }
                         else {
                             toastShort("current potentio: " + String.valueOf(values[0]));
+                            if (knobSlave != null) {
+                                knobSlave.setRotorPercentage((int) (values[0] * 10));
+                            }
                         }
+                    } else if (response.getCommandId() == COMMAND_GOTO) {
+                        toastShort("succesful potentio change.");
                     }
                 }
             }
