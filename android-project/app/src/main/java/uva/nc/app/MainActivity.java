@@ -532,10 +532,10 @@ public class MainActivity extends ServiceActivity {
                         if (btobj.getCommand() == BT_COMMAND_POTENTIO && btobj.getData().length == 1) {
                             float potentio = btobj.getData()[0];
                             knobMaster.setRotorPercentage((int) (potentio * 10f));
-                            toastShort("Potentio of " + device + " is " + String.valueOf(potentio) + "\n");
+                            toastShort("Potentio of " + device.getName() + " is " + String.valueOf(potentio) + "\n");
                         }
                         else {
-                            toastShort("unknown BluetoothObject from " + device + "\n");
+                            toastShort("unknown BluetoothObject from " + device.getName() + "\n(" + device.getAddress() + ")");
                         }
                     } else {
                         toastShort("From " + device + "\n" + String.valueOf(obj));
