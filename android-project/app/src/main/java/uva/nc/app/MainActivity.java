@@ -48,22 +48,25 @@ public class MainActivity extends ServiceActivity {
     // Receiver implemented in separate class, see bottom of file.
     private final MainActivityReceiver receiver = new MainActivityReceiver();
     Singleton m_Inst = Singleton.getInstance();
-    // BT Controls.
-    private TextView listenerStatusText;
-    private TextView ownAddressText;
-    private TextView deviceCountText;
-    private Button listenerButton;
-    private Button devicesButton;
-    private Button pingMasterButton;
-    private Button pingSlavesButton;
 
+    // Master Controls
+    private TextView slaveStatusText;
+    private Button devicesButton;
+    private Button pingSlavesButton;
     private Button ledpartySlavesButton;
     private Button potentioSlavesButton;
-
     // Selected slaves
     private Button selectDevicesButton;
     private LinearLayout selectedSlavesTextFrame;
     private TextView selectedSlavesText;
+    // Slave Controls
+    private TextView deviceCountText;
+    private TextView ownAddressText;
+    private Button pingMasterButton;
+
+    // BT Controls.
+    private TextView listenerStatusText;
+    private Button listenerButton;
 
     // mBed controls.
     private TextView mbedConnectedText;
@@ -146,6 +149,7 @@ public class MainActivity extends ServiceActivity {
             }
         });
         mbedConnectedText = (TextView)findViewById(R.id.mbed_connected);
+        slaveStatusText = (TextView) findViewById(R.id.slave_status);
         pingMasterButton = (Button)findViewById(R.id.ping_master);
         pingMasterButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -351,6 +355,7 @@ public class MainActivity extends ServiceActivity {
             }
         }
 
+        slaveStatusText.setVisibility(allowPingMaster ? View.VISIBLE : View.GONE);
         listenerStatusText.setText(slaveStatus);
         listenerButton.setText(slaveButton);
         listenerButton.setEnabled(slaveButtonEnabled);
@@ -375,6 +380,15 @@ public class MainActivity extends ServiceActivity {
         } else {
             selectedSlavesTextFrame.setVisibility(View.GONE);
         }
+    }
+
+    private void setSlaveStatusText(final String jobText) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                slaveStatusText.setText("Current job: " + jobText);
+            }
+        });
     }
 
     private void refreshMbedControls() {
@@ -482,19 +496,19 @@ public class MainActivity extends ServiceActivity {
                     if (obj instanceof BluetoothObject) {
                         BluetoothObject btobj = (BluetoothObject)obj;
                         if (btobj.getCommand() == BT_COMMAND_LEDPARTY) {
-                            toastShort("received ledparty from master\n");
+                            setSlaveStatusText("ledparty!");
                             if (getMbed().manager.areChannelsOpen()) {
                                 float[] args = getRandomLedArray();
                                 getMbed().manager.write(new MbedRequest(COMMAND_LED, args));
                             }
                         } else if (btobj.getCommand() == BT_COMMAND_REQUEST_POTENTIO) {
-                            toastShort("received potentiorequest from master\n");
+                            setSlaveStatusText("request potentio!");
                             if (getMbed().manager.areChannelsOpen()) {
                                 sendPotentioToMaster = true;
                                 getMbed().manager.write(new MbedRequest(COMMAND_REQUEST_POTENTIO, new float[] {}));
                             }
                         } else if (btobj.getCommand() == BT_COMMAND_SET_POTENTIO && btobj.getData().length == 1) {
-                            toastShort("set potentio from master\n");
+                            setSlaveStatusText("set potentio to " + String.valueOf(btobj.getData()[0]));
                             if (getMbed().manager.areChannelsOpen()) {
                                 getMbed().manager.write(new MbedRequest(COMMAND_GOTO, btobj.getData()));
                             }
