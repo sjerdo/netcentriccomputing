@@ -48,13 +48,14 @@ public class MainActivity extends ServiceActivity {
     // Receiver implemented in separate class, see bottom of file.
     private final MainActivityReceiver receiver = new MainActivityReceiver();
     Singleton m_Inst = Singleton.getInstance();
-
     // Master Controls
     private TextView slaveStatusText;
     private Button devicesButton;
     private Button pingSlavesButton;
     private Button ledpartySlavesButton;
     private Button potentioSlavesButton;
+    private RelativeLayout knobMasterFrame;
+    private RoundKnobButton knobMaster;
     // Selected slaves
     private Button selectDevicesButton;
     private LinearLayout selectedSlavesTextFrame;
@@ -63,8 +64,6 @@ public class MainActivity extends ServiceActivity {
     private TextView deviceCountText;
     private TextView ownAddressText;
     private Button pingMasterButton;
-
-    // BT Controls.
     private TextView listenerStatusText;
     private Button listenerButton;
 
@@ -73,10 +72,6 @@ public class MainActivity extends ServiceActivity {
     private Button mbedSumButton;
     private Button mbedPotentioButton;
     private Button mbedLedButton;
-
-    // Knobs
-    private RelativeLayout knobMasterFrame;
-    private RoundKnobButton knobMaster;
     private RelativeLayout knobSlaveFrame;
     private RoundKnobButton knobSlave;
 
@@ -86,8 +81,10 @@ public class MainActivity extends ServiceActivity {
     // Accessory to connect to when service is connected.
     private UsbAccessory toConnect;
 
+    // boolean which indicates if the potentio is to be sended to master
     private boolean sendPotentioToMaster = false;
 
+    // arraylist containing deselected slaves (for not sending commands to them)
     private ArrayList<String> deselectedDevices = new ArrayList<>();
 
     @Override
@@ -135,22 +132,12 @@ public class MainActivity extends ServiceActivity {
 
 
     private void attachControls() {
-        // Bluetooth controls.
+        // Bluetooth slave controls.
         ownAddressText = (TextView)findViewById(R.id.own_address);
         listenerStatusText = (TextView)findViewById(R.id.listener_status);
         listenerButton = (Button)findViewById(R.id.listener);
-        deviceCountText = (TextView)findViewById(R.id.device_count);
-        devicesButton = (Button)findViewById(R.id.devices);
-        devicesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent launch = new Intent(MainActivity.this, DevicesActivity.class);
-                startActivity(launch);
-            }
-        });
-        mbedConnectedText = (TextView)findViewById(R.id.mbed_connected);
         slaveStatusText = (TextView) findViewById(R.id.slave_status);
-        pingMasterButton = (Button)findViewById(R.id.ping_master);
+        pingMasterButton = (Button) findViewById(R.id.ping_master);
         pingMasterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -158,6 +145,17 @@ public class MainActivity extends ServiceActivity {
                 if (bluetooth != null) {
                     bluetooth.slave.sendToMaster(random.nextInt(2500));
                 }
+            }
+        });
+
+        // Bluetooth master controls
+        deviceCountText = (TextView)findViewById(R.id.device_count);
+        devicesButton = (Button)findViewById(R.id.devices);
+        devicesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent launch = new Intent(MainActivity.this, DevicesActivity.class);
+                startActivity(launch);
             }
         });
         pingSlavesButton = (Button)findViewById(R.id.ping_slaves);
@@ -218,8 +216,8 @@ public class MainActivity extends ServiceActivity {
         selectedSlavesTextFrame = (LinearLayout)findViewById(R.id.selected_slaves_text);
         selectedSlavesText = (TextView)findViewById(R.id.selected_slaves_count);
 
-
         // mBed controls.
+        mbedConnectedText = (TextView) findViewById(R.id.mbed_connected);
         mbedSumButton = (Button)findViewById(R.id.mbed_sum);
         mbedSumButton.setOnClickListener(new View.OnClickListener() {
             @Override
