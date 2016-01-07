@@ -14,9 +14,6 @@ import java.lang.reflect.Method;
 
 public class SlaveManager {
 
-    private static final String TAG = SlaveManager.class.getName();
-    private static final int WAIT_CLOSE = 5; //ms
-
     public static final String STARTED_LISTENING = "uva.nc.bluetooth.StartedListening";
     public static final String STOPPED_LISTENING = "uva.nc.bluetooth.StoppedListening";
     public static final String LISTENER_CONNECTED = "uva.nc.bluetooth.ListenerConnected";
@@ -24,7 +21,8 @@ public class SlaveManager {
     public static final String LISTENER_RECEIVED = "uva.nc.bluetooth.ListenerReceived";
     public static final String EXTRA_DEVICE = "uva.nc.bluetooth.Device";
     public static final String EXTRA_OBJECT = "uva.nc.bluetooth.Object";
-
+    private static final String TAG = SlaveManager.class.getName();
+    private static final int WAIT_CLOSE = 5; //ms
     private final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 
     private final ConnectedThreadListener connectedListener = new ConnectedThreadListener();
@@ -126,14 +124,14 @@ public class SlaveManager {
 
     private class ListenThread extends Thread {
 
-        private volatile boolean stop = false;
         private final BluetoothServerSocket serverSocket;
+        private volatile boolean stop = false;
 
 
         public ListenThread() throws IOException {
             BluetoothServerSocket socket = null;
             try {
-                Method listenToPort = adapter.getClass().getMethod("listenUsingRfcommOn", new Class[] { int.class });
+                Method listenToPort = adapter.getClass().getMethod("listenUsingRfcommOn", int.class);
                 socket = (BluetoothServerSocket)listenToPort.invoke(adapter, port);
             } catch (Exception e) { }
 
@@ -151,13 +149,15 @@ public class SlaveManager {
             appContext.sendBroadcast(startedListening);
 
             while (!stop) {
-                BluetoothSocket socket;
-                try {
-                    socket = serverSocket.accept();
-                } catch (IOException e) {
-                    Log.v(TAG, "Aborted listening due to IO error.");
-                    close();
-                    return;
+                BluetoothSocket socket = null;
+                if (serverSocket != null) {
+                    try {
+                        socket = serverSocket.accept();
+                    } catch (IOException e) {
+                        Log.v(TAG, "Aborted listening due to IO error.");
+                        close();
+                        return;
+                    }
                 }
 
                 if (socket != null) {
