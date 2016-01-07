@@ -17,7 +17,6 @@ import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 import uva.nc.ServiceActivity;
@@ -69,7 +68,6 @@ public class MainActivity extends ServiceActivity {
 
     // mBed controls.
     private TextView mbedConnectedText;
-    private Button mbedSumButton;
     private Button mbedPotentioButton;
     private Button mbedLedButton;
     private RelativeLayout knobSlaveFrame;
@@ -218,15 +216,6 @@ public class MainActivity extends ServiceActivity {
 
         // mBed controls.
         mbedConnectedText = (TextView) findViewById(R.id.mbed_connected);
-        mbedSumButton = (Button)findViewById(R.id.mbed_sum);
-        mbedSumButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                float[] args = getRandomFloatArray(10);
-                toastShort("Sum of: \n" + Arrays.toString(args));
-                getMbed().manager.write(new MbedRequest(COMMAND_SUM, args));
-            }
-        });
         mbedPotentioButton = (Button)findViewById(R.id.mbed_potentio);
         mbedPotentioButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -384,7 +373,7 @@ public class MainActivity extends ServiceActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                slaveStatusText.setText("Current job: " + jobText);
+                slaveStatusText.setText("Last job: " + jobText);
             }
         });
     }
@@ -401,7 +390,6 @@ public class MainActivity extends ServiceActivity {
 
         mbedConnectedText.setText(connText);
         mbedPotentioButton.setEnabled(enableButtons);
-        mbedSumButton.setEnabled(enableButtons);
         mbedLedButton.setEnabled(enableButtons);
         knobSlaveFrame.setVisibility(enableButtons ? View.VISIBLE : View.GONE);
     }
@@ -492,7 +480,7 @@ public class MainActivity extends ServiceActivity {
                 Serializable obj = intent.getSerializableExtra(SlaveManager.EXTRA_OBJECT);
                 if (obj != null) {
                     if (obj instanceof BluetoothObject) {
-                        BluetoothObject btobj = (BluetoothObject)obj;
+                        final BluetoothObject btobj = (BluetoothObject) obj;
                         if (btobj.getCommand() == BT_COMMAND_LEDPARTY) {
                             setSlaveStatusText("ledparty!");
                             if (getMbed().manager.areChannelsOpen()) {
@@ -507,6 +495,12 @@ public class MainActivity extends ServiceActivity {
                             }
                         } else if (btobj.getCommand() == BT_COMMAND_SET_POTENTIO && btobj.getData().length == 1) {
                             setSlaveStatusText("set potentio to " + String.valueOf(btobj.getData()[0]));
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    knobSlave.setRotorPercentage((int) (btobj.getData()[0] * 10f));
+                                }
+                            });
                             if (getMbed().manager.areChannelsOpen()) {
                                 getMbed().manager.write(new MbedRequest(COMMAND_GOTO, btobj.getData()));
                             }
