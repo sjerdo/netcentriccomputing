@@ -71,6 +71,14 @@
             </RelativeLayout>
 
             <TextView
+                android:id="@+id/current_potentio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Current potentio: loading"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/master_mode_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

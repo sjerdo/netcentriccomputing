@@ -72,6 +72,7 @@ public class MainActivity extends ServiceActivity {
     private Button mbedLedButton;
     private RelativeLayout knobSlaveFrame;
     private RoundKnobButton knobSlave;
+    private TextView mbedCurrentPotentioText;
 
     // Random data for sample events.
     private Random random = new Random();
@@ -216,6 +217,7 @@ public class MainActivity extends ServiceActivity {
 
         // mBed controls.
         mbedConnectedText = (TextView) findViewById(R.id.mbed_connected);
+        mbedCurrentPotentioText = (TextView) findViewById(R.id.current_potentio);
         mbedPotentioButton = (Button)findViewById(R.id.mbed_potentio);
         mbedPotentioButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -238,8 +240,6 @@ public class MainActivity extends ServiceActivity {
     }
 
     private void createKnobs() {
-
-
         //create master knob
         knobMaster = new RoundKnobButton(this, R.drawable.stator, R.drawable.rotoron, R.drawable.rotoroff,
                 m_Inst.Scale(250), m_Inst.Scale(250));
@@ -269,7 +269,6 @@ public class MainActivity extends ServiceActivity {
         knobSlaveFrame = (RelativeLayout)findViewById(R.id.knob_frame_slave);
         knobSlaveFrame.addView(knobSlave, lp);
 
-        //TODO: set correct initial value
         knobSlave.setRotorPercentage(50);
         knobSlave.SetListener(new RoundKnobButton.RoundKnobButtonListener() {
             public void onStateChange(boolean newstate) {
@@ -378,6 +377,16 @@ public class MainActivity extends ServiceActivity {
         });
     }
 
+    private void setCurrentPotentio(final float potentio) {
+        mbedCurrentPotentioText.setText("Current potentio: " + String.valueOf(potentio));
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                knobSlave.setRotorPercentage((int) (potentio * 10f));
+            }
+        });
+    }
+
     private void refreshMbedControls() {
         String connText = getString(R.string.not_connected); // if you want to localize
         boolean enableButtons = false;
@@ -386,12 +395,14 @@ public class MainActivity extends ServiceActivity {
         if (mbed != null && mbed.manager.areChannelsOpen()) {
             connText = getString(R.string.connected);
             enableButtons = true;
+            mbed.manager.write(new MbedRequest(COMMAND_REQUEST_POTENTIO, null));
         }
 
         mbedConnectedText.setText(connText);
         mbedPotentioButton.setEnabled(enableButtons);
         mbedLedButton.setEnabled(enableButtons);
         knobSlaveFrame.setVisibility(enableButtons ? View.VISIBLE : View.GONE);
+        mbedCurrentPotentioText.setVisibility(enableButtons ? View.VISIBLE : View.GONE);
     }
 
 
@@ -495,12 +506,7 @@ public class MainActivity extends ServiceActivity {
                             }
                         } else if (btobj.getCommand() == BT_COMMAND_SET_POTENTIO && btobj.getData().length == 1) {
                             setSlaveStatusText("set potentio to " + String.valueOf(btobj.getData()[0]));
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    knobSlave.setRotorPercentage((int) (btobj.getData()[0] * 10f));
-                                }
-                            });
+                            setCurrentPotentio(btobj.getData()[0]);
                             if (getMbed().manager.areChannelsOpen()) {
                                 getMbed().manager.write(new MbedRequest(COMMAND_GOTO, btobj.getData()));
                             }
@@ -524,9 +530,9 @@ public class MainActivity extends ServiceActivity {
                     if (obj instanceof BluetoothObject) {
                         BluetoothObject btobj = (BluetoothObject) obj;
                         if (btobj.getCommand() == BT_COMMAND_POTENTIO && btobj.getData().length == 1) {
-                            float percentage = btobj.getData()[0];
-                            knobMaster.setRotorPercentage((int)(percentage * 10f));
-                            toastShort("Potentio of " + device + " is " + String.valueOf(percentage) + "\n");
+                            float potentio = btobj.getData()[0];
+                            knobMaster.setRotorPercentage((int) (potentio * 10f));
+                            toastShort("Potentio of " + device + " is " + String.valueOf(potentio) + "\n");
                         }
                         else {
                             toastShort("unknown BluetoothObject from " + device + "\n");
@@ -561,15 +567,12 @@ public class MainActivity extends ServiceActivity {
                         } else {
                             toastShort("SUM: " + String.valueOf(values[0]));
                         }
-                    } else if (response.getCommandId() == COMMAND_REQUEST_POTENTIO) {
+                    } else if (response.getCommandId() == COMMAND_REQUEST_POTENTIO ||
+                            response.getCommandId() == COMMAND_GOTO) {
                         if (values == null || values.length != 1) {
                             toastShort("error");
-                        }
-                        else {
-                            toastShort("current potentio: " + String.valueOf(values[0]));
-                            if (knobSlave != null) {
-                                knobSlave.setRotorPercentage((int) (values[0] * 10));
-                            }
+                        } else {
+                            setCurrentPotentio(values[0]);
                             if (sendPotentioToMaster) {
                                 sendPotentioToMaster = false;
                                 BluetoothService bluetoothService = getBluetooth();
@@ -578,8 +581,6 @@ public class MainActivity extends ServiceActivity {
                                 }
                             }
                         }
-                    } else if (response.getCommandId() == COMMAND_GOTO) {
-                        toastShort("succesful potentio change.");
                     }
                 }
             }
