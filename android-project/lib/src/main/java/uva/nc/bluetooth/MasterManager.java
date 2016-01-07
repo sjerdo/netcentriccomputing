@@ -17,9 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MasterManager {
 
-    private static final String TAG = MasterManager.class.getName();
-    private static final int WAIT_CLOSE = 5; //ms
-
     public static final String DEVICE_STATE_CHANGED = "uva.nc.bluetooth.DeviceStateChanged";
     public static final String DEVICE_RECEIVED = "uva.nc.bluetooth.DeviceReceived";
     public static final String DEVICE_ADDED = "uva.nc.bluetooth.DeviceAdded";
@@ -28,7 +25,8 @@ public class MasterManager {
     public static final String EXTRA_OBJECT = "uva.nc.bluetooth.Object";
     public static final String EXTRA_FROM_STATE = "uva.nc.bluetooth.FromState";
     public static final String EXTRA_TO_STATE = "uva.nc.bluetooth.ToState";
-
+    private static final String TAG = MasterManager.class.getName();
+    private static final int WAIT_CLOSE = 5; //ms
     private final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 
     private final ConnectedThreadListener connectedListener = new ConnectedThreadListener();
@@ -187,6 +185,21 @@ public class MasterManager {
         return total;
     }
 
+    public int countConnectedWithoutAddresses(ArrayList<String> addresses) {
+        int total = 0;
+        Iterator it = remoteDeviceStates.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry entry = (Map.Entry) it.next();
+            BluetoothDevice device = (BluetoothDevice) entry.getKey();
+            DeviceState state = (DeviceState) entry.getValue();
+            if (state == DeviceState.Connected && !addresses.contains(device.getAddress())) {
+                total++;
+            }
+        }
+
+        return total;
+    }
+
 
     public ArrayList<BluetoothDevice> getDeviceList() {
         return remoteDevices;
@@ -252,7 +265,7 @@ public class MasterManager {
 
             BluetoothSocket socket = null;
             try {
-                Method connectToPort = remoteDevice.getClass().getMethod("createRfcommSocket", new Class[]{int.class});
+                Method connectToPort = remoteDevice.getClass().getMethod("createRfcommSocket", int.class);
                 socket = (BluetoothSocket)connectToPort.invoke(remoteDevice, port);
             } catch (Exception e) { }
 

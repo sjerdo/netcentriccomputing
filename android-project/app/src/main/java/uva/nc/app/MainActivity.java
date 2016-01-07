@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -34,11 +33,6 @@ import uva.nc.mbed.MbedService;
 public class MainActivity extends ServiceActivity {
 
     private static final String TAG = MainActivity.class.getName();
-    Singleton m_Inst = Singleton.getInstance();
-
-    // Receiver implemented in separate class, see bottom of file.
-    private final MainActivityReceiver receiver = new MainActivityReceiver();
-
     // ID's for commands on mBed.
     private static final int COMMAND_SUM = 1;
     private static final int COMMAND_AVG = 2;
@@ -47,12 +41,13 @@ public class MainActivity extends ServiceActivity {
     //TODO: implement following commands on the mBed:
     private static final int COMMAND_REQUEST_STATUS = 5;
     private static final int COMMAND_GOTO = 6;
-
     private static final int BT_COMMAND_LEDPARTY = 20;
     private static final int BT_COMMAND_POTENTIO = 22;
     private static final int BT_COMMAND_SET_POTENTIO = 23;
     private static final int BT_COMMAND_REQUEST_POTENTIO = 24;
-
+    // Receiver implemented in separate class, see bottom of file.
+    private final MainActivityReceiver receiver = new MainActivityReceiver();
+    Singleton m_Inst = Singleton.getInstance();
     // BT Controls.
     private TextView listenerStatusText;
     private TextView ownAddressText;
@@ -302,8 +297,8 @@ public class MainActivity extends ServiceActivity {
         String slaveStatus = "Status not available";
         String slaveButton = "Start listening";
         String ownAddress = "Not available";
-        String connected = "0";
         int devConnected = 0;
+        int devSelected = 0;
         boolean slaveButtonEnabled = false;
         boolean devicesButtonEnabled = false;
         boolean allowPingMaster = false;
@@ -317,10 +312,10 @@ public class MainActivity extends ServiceActivity {
             ownAddress = bluetooth.utility.getOwnAddress();
 
             devConnected = bluetooth.master.countConnected();
-            if (bluetooth.master.countConnected() > 0) {
-                connected = String.valueOf(devConnected);
+            if (devConnected > 0) {
                 allowPingSlaves = true;
             }
+            devSelected = bluetooth.master.countConnectedWithoutAddresses(deselectedDevices);
 
             if (bluetooth.slave.isConnected()) {
                 slaveStatus = "Connected to " + bluetooth.slave.getRemoteDevice();
@@ -360,7 +355,7 @@ public class MainActivity extends ServiceActivity {
         listenerButton.setText(slaveButton);
         listenerButton.setEnabled(slaveButtonEnabled);
         ownAddressText.setText(ownAddress);
-        deviceCountText.setText(connected);
+        deviceCountText.setText(String.valueOf(devConnected));
         devicesButton.setEnabled(devicesButtonEnabled);
         pingMasterButton.setEnabled(allowPingMaster);
         pingSlavesButton.setEnabled(allowPingSlaves);
@@ -370,9 +365,13 @@ public class MainActivity extends ServiceActivity {
         potentioSlavesButton.setEnabled(devConnected > 0);
         selectDevicesButton.setEnabled(devConnected > 0);
 
-        if (devConnected > 0 && deselectedDevices.size() > 0) {
+        if (devConnected > 0) {
             selectedSlavesTextFrame.setVisibility(View.VISIBLE);
-            selectedSlavesText.setText(String.valueOf(devConnected - deselectedDevices.size()));
+            if (devSelected < devConnected) {
+                selectedSlavesText.setText(String.valueOf(devSelected));
+            } else {
+                selectedSlavesText.setText("all");
+            }
         } else {
             selectedSlavesTextFrame.setVisibility(View.GONE);
         }
