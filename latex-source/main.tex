@@ -1,0 +1,200 @@
+%----------------------------------------------------------------------------------------
+%   LATEX LABBOOK TEMPLATE
+%   Versie 1.0 (12 september 2013)
+%   Opmerkingen of feedback naar Robert van Wijk 
+%                   (robertvanwijk@uva.nl)
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+%   PACKAGES EN DOCUMENT CONFIGURATIE
+%----------------------------------------------------------------------------------------
+
+\documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage[dutch]{babel}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{xifthen}
+\usepackage{algorithm2e}
+\usepackage{lipsum}
+\usepackage{hyperref}
+
+%----------------------------------------------------------------------------------------
+%   HEADER & FOOTER
+%----------------------------------------------------------------------------------------
+\pagestyle{fancy}
+  \lhead{\includegraphics[width=7cm]{logoUvA}}      %Zorg dat het logo in dezelfde map staat
+  \rhead{\footnotesize \textsc {Technisch rapport\\ \opdracht}}
+  \lfoot
+    {
+    \footnotesize \studentA
+    \ifthenelse{\isundefined{\studentB}}{}{\\ \studentB}
+    \ifthenelse{\isundefined{\studentC}}{}{\\ \studentC}
+    \ifthenelse{\isundefined{\studentD}}{}{\\ \studentD}
+    \ifthenelse{\isundefined{\studentE}}{}{\\ \studentE}
+    }
+  \cfoot{}
+  \rfoot{\small \textsc {Pagina \thepage\ van \pageref{LastPage}}}
+  \renewcommand{\footrulewidth}{0.5pt}
+
+\fancypagestyle{firststyle}
+ {
+  \fancyhf{}
+   \renewcommand{\headrulewidth}{0pt}
+   \chead{\includegraphics[width=7cm]{logoUvA}}
+   \rfoot{\small \textsc {Pagina \thepage\ van \pageref{LastPage}}}
+ }
+
+\setlength{\topmargin}{-0.3in}
+\setlength{\textheight}{630pt}
+\setlength{\headsep}{40pt}
+
+%----------------------------------------------------------------------------------------
+%   DOCUMENT INFORMATIE
+%----------------------------------------------------------------------------------------
+%Geef bij ieder command het juiste argument voor deze opdracht. Vul het hier in en het komt op meerdere plekken in het document correct te staan.
+
+\newcommand{\titel}{Servo systeem bestuurd door Android apparaat}           %Zelfbedachte titel
+\newcommand{\opdracht}{Mobile Systems Basic Design}     %Naam van opdracht die je van docent gehad hebt
+\newcommand{\docent}{drs. A. van Inge}
+\newcommand{\cursus}{Netcentric Computing}
+\newcommand{\vakcode}{5062NECO6Y}       %Te vinden op oa Datanose
+\newcommand{\datum}{\today}                 %Pas aan als je niet de datum van vanaag wilt hebben
+\newcommand{\studentA}{Shahrukh Zaidi}
+\newcommand{\uvanetidA}{10636102}
+\newcommand{\studentB}{Sjoerd Wenker}           %Comment de regel als je allen werkt
+\newcommand{\uvanetidB}{10617558}
+%\newcommand{\studentC}{Naam student 3}     %Uncomment de regel als je met drie studenten werkt
+\newcommand{\uvanetidC}{UvAnetID student 3}
+%\newcommand{\studentD}{Naam student 4}     %Uncomment de regel als je met vier studenten werkt
+\newcommand{\uvanetidD}{UvAnetID student 4}
+%\newcommand{\studentE}{Naam student 5}         %Uncomment de regel als je met vijf studenten werkt
+\newcommand{\uvanetidE}{UvAnetID student 5}
+
+%----------------------------------------------------------------------------------------
+%   AUTOMATISCHE TITEL
+%----------------------------------------------------------------------------------------
+\begin{document}
+\thispagestyle{firststyle}
+\begin{center}
+    \textsc{\Large \opdracht}\\[0.2cm]
+        \rule{\linewidth}{0.5pt} \\[0.4cm]
+            { \huge \bfseries \titel}
+        \rule{\linewidth}{0.5pt} \\[0.2cm]
+    {\large \datum  \\[0.4cm]}
+    
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushleft} 
+            \emph{Student:}\\
+            {\studentA \\ {\small \uvanetidA \\[0.2cm]}}
+                \ifthenelse{\isundefined{\studentB}}{}{\studentB \\ {\small \uvanetidB \\[0.2cm]}}
+                \ifthenelse{\isundefined{\studentC}}{}{\studentC \\ {\small \uvanetidC \\[0.2cm]}}
+                \ifthenelse{\isundefined{\studentD}}{}{\studentD \\ {\small \uvanetidD \\[0.2cm]}}
+                \ifthenelse{\isundefined{\studentE}}{}{\studentE \\ {\small \uvanetidE \\[0.2cm]}}
+        \end{flushleft}
+    \end{minipage}
+~
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushright} 
+            \emph{Docent:} \\
+            \docent \\[0.2cm]
+            \emph{Cursus:} \\
+            \cursus \\[0.2cm]
+            \emph{Vakcode:} \\
+            \vakcode \\[0.2cm]
+        \end{flushright}
+    \end{minipage}\\[1 cm]
+\end{center}
+
+%----------------------------------------------------------------------------------------
+%   INHOUDSOPGAVE EN ABSTRACT 
+%----------------------------------------------------------------------------------------
+
+%\tableofcontents
+%\begin{abstract}
+%\lorem[13]
+%\end{abstract}
+
+%----------------------------------------------------------------------------------------
+%   INTRODUCTIE
+%----------------------------------------------------------------------------------------
+\section{Introductie}
+In deze opdracht gaan wij een systeem bouwen dat het mogelijk maakt om een servosysteem door middel van een Android apparaat aan te sturen. Het servosysteem bestaat uit een elektromotor met op de as een potentiometer. Deze potentiometer wordt gebruikt om de aspositie van de servo op te meten. Om het servosysteem via een Android apparaat te be\"{i}nvloeden, wordt gebruik gemaakt van een mBed microcontroller. Deze staat direct aangesloten op de servo en kan onder andere worden gebruikt om de servomotor aan te sturen. Om uiteindelijk de servomotor met een Android toestel aan te sturen, wordt een toestel aangesloten op de mBed. De Android apparaten waarvan wij gebruik hebben gemaakt om het regelsysteem te testen, draaien op de nieuwste versie van Android (Android 6.0).  
+%----------------------------------------------------------------------------------------
+%   METHODE
+%----------------------------------------------------------------------------------------
+
+\section{Methode}
+\subsection{mBed-servo koppeling}
+Het aansluiten van het servosysteem op de mBed microcontroller bestaat uit twee delen. Als eerste wordt de asopnemer aangesloten op de mBed. Hiervoor hebben wij gebruik gemaakt van de ADC pin \textit{p16}. Deze geeft, met behulp van de \texttt{read()}-functie, een waarde terug tussen de 0 en 1 waarmee uiteindelijk de potentiowaarde kan worden berekend. De elektrische aardaansluiting wordt aangesloten op de GND-poort \textit{p22}. Voor het aansturen van de servomotor om de weerstand aan te passen, maken wij gebruik van de H-Bridge stroomversterker poorten \textit{p27} en \textit{p28}. 
+
+Om de huidige potentiowaarde te bepalen, hebben wij voor elke positie van de sensor, met een interval van een half, de gemeten spanning genoteerd. Dit levert de volgende grafiek op:
+
+\vspace{1em}
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\textwidth, scale=0.5]{plot.png}
+\vspace{1ex}
+\hrule
+\caption{Gemiddelde spanning per positie.}
+\end{figure}
+
+Om de gemeten spanning om te zetten naar een potentiowaarde, hebben wij gebruik gemaakt van Wolfram Alpha om een geschikte fit te vinden. Om een zo nauwkeurig mogelijke vertaling te krijgen, maken wij tot een spanning van 0.165 (potentiowaarde 5.5) gebruik van een least-squares fit om een formule te vinden. Wanneer de spanning hoger is dan 0.165, wordt een exponential fit gebruikt.\\
+Tot een spanning van 0.l65 wordt de volgende formule gebruikt, waarbij x de potentiowaarde is:
+\begin{equation}
+    spanning = 0.00599767 \cdot x^2 - 0.000904196 \cdot x - 0.00289697
+\end{equation}
+Boven een meting van 0.165 maken wij gebruik van de volgende exponentiele functie, waarbij eveneens x de potentiowaarde is:
+\begin{equation}
+    spanning = 0.0158139 \cdot e^{0.41411 \cdot x}
+\end{equation}
+
+Om de servomotor naar de juiste positie te verstellen, maken wij gebruik van de \texttt{forward()} of \texttt{backward()} methode. Dit hangt af van de huidige positie van de potentiometer. Wanneer de gewenste positie is bereikt, wordt de \texttt{stop()}-functie aangeroepen. Om te voorkomen dat de motor blijft draaien wanneer de minimum- of maximumwaarde is bereikt, hebben we een bovengrens van 6.5 seconden dat de motor kan draaien voor \'{e}\'{e}n aspositie regelingscommando.
+
+\subsection{Android-mBed koppeling}
+Een Android toestel wordt aangesloten op de USB-aansluiting van de mBed. Dit toestel gaat dienen als een \textit{slave}, d.w.z. een tussenstation om via de mBed commando's te sturen naar het servosysteem. Een tweede toestel, de \textit{master}, verbindt zich via een Bluetooth verbinding met de slave. Dit geeft het de mogelijkheid om draadloos de huidige weerstand op te vragen en via een Android-app met een draaiknop deze weerstand te wijzigen. Een android apparaat kan met verschillende slaves verbonden zijn, die via een menu kunnen worden geselecteerd. Op deze manier kunnen tegelijkertijd meerdere servosystemen worden bestuurd. Een slave die rechtsstreeks verbonden is aan een mBed heeft ook de mogelijkheid zelf commando's sturen naar het servosysteem.
+
+%----------------------------------------------------------------------------------------
+%   RESULTATEN
+%----------------------------------------------------------------------------------------
+
+%\section{Resultaten}
+
+%----------------------------------------------------------------------------------------
+%   DISCUSSIE
+%----------------------------------------------------------------------------------------
+
+\section{Discussie}
+Het bepalen van de huidige potentiowaarde heeft enige problemen opgeleverd. In eerste instantie is een meting van het spanningssignaal gedaan voor elke halve potentiowaarde (0, 0.5, 1 .. 9.5, 10). Hier hebben wij een exponential fit op losgelaten. Dit leverde een potentiowaade die afwijkingen van potentiowaarde vertoonde van ruim 1. In een later stadia hebben wij besloten een betere bepaling te doen door middel van meerdere formules. Aangezien lage potentiowaarden zeer kleine verschillen tonen en de hogere waarden meer exponentiele verschillen, hebben wij besloten de lagere waarden met een least-squares fit te bepalen en de hogere waarden met een exponential fit. Uit een paar tests is gebleken dat de potentiowaarde het minst afwijking toonde als we de grens stelden op een spanningswaarde van 0.165.\\
+Zoals in onderstaande grafiek te zien is, loopt de curve niet geheel gelijk aan de gemeten waarden.
+\vspace{1em}
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.8\textwidth, scale=0.8]{plot-with-estimate.png}
+\vspace{1ex}
+\hrule
+\caption{Metingen potentiowaarden met schatting}
+\end{figure}
+
+De geschreven mBed code heeft voor het instellen van een potentiowaarde een tijdslimiet van 6.5 seconden. Als na 6.5 seconden de gewenste waarde nog niet bereikt is, wordt het draaien gestopt. In theorie werkt deze methode, maar door de implementatie van de draaiknop in de Android applicatie werkt het niet als gewenst. In de Android applicatie worden tijdens het draaien van de knop tussentijds meerdere requests naar de mBed gestuurd om de waarde aan te passen. Deze requests worden niet gebundeld, dus nadat het tijdslimiet van de request is verstreken, gaat hetzelfde tijdslimiet in voor de volgende requests. Hierdoor stopt de motor niet na de 6.5 seconden, zoals aanvankelijk verwacht wordt.
+
+%\subsection{Implicaties en aanbevelingen}
+
+%\subsection{Conclusie}
+
+%----------------------------------------------------------------------------------------
+%   REFERENTIES
+%----------------------------------------------------------------------------------------
+%Meer informatie hierover volgt in blok 5 van jaar 1.
+
+\bibliographystyle{acm}
+
+%----------------------------------------------------------------------------------------
+%   BIJLAGEN
+%----------------------------------------------------------------------------------------
+
+%\section{Bijlage A}
+%\section{Bijlage B}
+%\section{Bijlage C}
+
+\end{document}
