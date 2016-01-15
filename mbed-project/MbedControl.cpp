@@ -25,7 +25,7 @@ float getCurrentValue() {
 }
 
 void goToValue(float destination) {
-    int seconds = 0.0;
+    float seconds = 0.0;
     if (destination < getCurrentValue()) {
         motor.backward();
         while(destination < getCurrentValue() && seconds < 6.5) {
@@ -45,8 +45,8 @@ void goToValue(float destination) {
 float abc_getX(float input) {
     // 0.00599767 x^2 - 0.000904196 x - 0.00289697 = input
     float a = 0.00599767;
-    float b = 0.000904196;
-    float c = 0.00289697 - input;
+    float b = -0.000904196;
+    float c = -0.00289697 - input;
     float determinant = b*b - 4*a*c;
     float x1, x2;
     
